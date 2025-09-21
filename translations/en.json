@@ -1,0 +1,32 @@
+{
+  "app_title": "Cabbage Price & Production Forecast Simulation",
+  "variety_label": "Select Cabbage Variety",
+  "variety_options": {
+    "early_autumn": "Early Autumn Cabbage",
+    "imported": "Imported Cabbage",
+    "brussels_sprouts": "Brussels Sprouts"
+  },
+  "county_label": "Select County",
+  "county_options": {
+    "taitung": "Taitung",
+    "taichung": "Taichung", 
+    "yunlin": "Yunlin",
+    "kaohsiung": "Kaohsiung"
+  },
+  "days_label": "Forecast Days",
+  "iot_volume_label": "IoT Sensed Production (kg)",
+  "typhoon_impact_label": "Typhoon Impact Index",
+  "forecast_results_title": "📈 Price Forecast Results",
+  "date_column": "Date",
+  "price_column": "Predicted Price (NT$/kg)",
+  "total_profit_label": "Estimated Total Profit",
+  "supply_chain_title": "🔧 Supply Chain Resilience Simulation",
+  "supply_chain_nodes": {
+    "Farm": "Farm",
+    "Transport": "Transport",
+    "Market": "Market"
+  },
+  "resilience_status": "Resilience Status",
+  "language_label": "Language",
+  "currency_suffix": "NT$"
+}

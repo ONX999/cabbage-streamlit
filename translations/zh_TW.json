@@ -1,0 +1,32 @@
+{
+  "app_title": "甘藍價格與產量預測模擬",
+  "variety_label": "選擇甘藍品種",
+  "variety_options": {
+    "early_autumn": "初秋甘藍",
+    "imported": "進口甘藍", 
+    "brussels_sprouts": "芽甘藍"
+  },
+  "county_label": "選擇縣市",
+  "county_options": {
+    "taitung": "台東",
+    "taichung": "台中",
+    "yunlin": "雲林",
+    "kaohsiung": "高雄"
+  },
+  "days_label": "預測天數",
+  "iot_volume_label": "IoT 感測產量（kg）",
+  "typhoon_impact_label": "颱風影響指數",
+  "forecast_results_title": "📈 價格預測結果",
+  "date_column": "日期",
+  "price_column": "預測價格 (NT$/kg)",
+  "total_profit_label": "預估總利潤",
+  "supply_chain_title": "🔧 供應鏈韌性模擬",
+  "supply_chain_nodes": {
+    "Farm": "農場",
+    "Transport": "運輸",
+    "Market": "市場"
+  },
+  "resilience_status": "韌性狀態",
+  "language_label": "語言",
+  "currency_suffix": "NT$"
+}
