@@ -4,7 +4,7 @@ import pandas as pd
 
 # 擴展甘藍品種清單
 CABBAGE_VARIETIES = [
-    "初秋甘藍", "進口甘藍", "芽甘藍", "高麗菜", "紫甘藍", 
+    "初秋甘藍", "進口甘藍", "芽甘藍", "高麗菜", "紫甘藍",
     "娃娃菜", "包心白菜", "結球白菜", "冬季甘藍", "春季甘藍"
 ]
 
@@ -16,6 +16,110 @@ COUNTIES = [
     "台東縣", "澎湖縣", "金門縣", "連江縣"
 ]
 
+# 縣市、鄉鎮區、地籍資料結構
+COUNTY_TOWNSHIP_DATA = {
+    "台北市": {
+        "中正區": {
+            "建國段": ["001號", "002號", "003號", "004號", "005號"],
+            "忠孝段": ["001號", "002號", "003號", "004號", "005號"],
+            "仁愛段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "大安區": {
+            "敦化段": ["001號", "002號", "003號", "004號", "005號"],
+            "復興段": ["001號", "002號", "003號", "004號", "005號"],
+            "信義段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "信義區": {
+            "松山段": ["001號", "002號", "003號", "004號", "005號"],
+            "世貿段": ["001號", "002號", "003號", "004號", "005號"]
+        }
+    },
+    "新北市": {
+        "板橋區": {
+            "板橋段": ["001號", "002號", "003號", "004號", "005號"],
+            "新板段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "中和區": {
+            "中和段": ["001號", "002號", "003號", "004號", "005號"],
+            "永和段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "三重區": {
+            "三重段": ["001號", "002號", "003號", "004號", "005號"],
+            "蘆洲段": ["001號", "002號", "003號", "004號", "005號"]
+        }
+    },
+    "桃園市": {
+        "桃園區": {
+            "桃園段": ["001號", "002號", "003號", "004號", "005號"],
+            "中正段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "中壢區": {
+            "中壢段": ["001號", "002號", "003號", "004號", "005號"],
+            "內壢段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "八德區": {
+            "八德段": ["001號", "002號", "003號", "004號", "005號"]
+        }
+    },
+    "台中市": {
+        "西屯區": {
+            "西屯段": ["001號", "002號", "003號", "004號", "005號"],
+            "逢甲段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "北屯區": {
+            "北屯段": ["001號", "002號", "003號", "004號", "005號"],
+            "軍功段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "南屯區": {
+            "南屯段": ["001號", "002號", "003號", "004號", "005號"]
+        }
+    },
+    "台南市": {
+        "中西區": {
+            "中西段": ["001號", "002號", "003號", "004號", "005號"],
+            "赤崁段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "東區": {
+            "東區段": ["001號", "002號", "003號", "004號", "005號"],
+            "德高段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "安平區": {
+            "安平段": ["001號", "002號", "003號", "004號", "005號"]
+        }
+    },
+    "高雄市": {
+        "左營區": {
+            "左營段": ["001號", "002號", "003號", "004號", "005號"],
+            "新莊段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "三民區": {
+            "三民段": ["001號", "002號", "003號", "004號", "005號"],
+            "鳳山段": ["001號", "002號", "003號", "004號", "005號"]
+        },
+        "前金區": {
+            "前金段": ["001號", "002號", "003號", "004號", "005號"]
+        }
+    }
+}
+
+# 為沒有詳細資料的縣市提供預設鄉鎮區和地段
+def get_default_township_data(county):
+    """為沒有詳細資料的縣市生成預設鄉鎮區和地段資料"""
+    if county in COUNTY_TOWNSHIP_DATA:
+        return COUNTY_TOWNSHIP_DATA[county]
+
+    # 生成預設資料
+    townships = [county.replace('市', '區').replace('縣', '區'), "中央區", "新興區"]
+    default_data = {}
+    for township in townships:
+        segments = [township.replace('區', '段'), "中心段", "農業段"]
+        default_data[township] = {}
+        for segment in segments:
+            default_data[township][segment] = ["00{}號".format(i) for i in range(1, 6)]
+
+    return default_data
+
+
 # 市場價格數據模擬
 def get_market_prices():
     """獲取全台甘藍市場價格數據"""
@@ -25,14 +129,46 @@ def get_market_prices():
         prices[variety] = round(base_price + np.random.normal(0, 2), 2)
     return prices
 
-def get_county_market_data(county):
-    """獲取特定縣市的甘藍品種價格數據"""
+
+def get_county_market_data(county, township=None, land_segment=None, land_number=None):
+    """獲取特定縣市的甘藍品種價格數據，包含地籍資料影響"""
     county_data = {}
+
+    # 基礎地區因子
+    base_regional_factor = np.random.uniform(0.8, 1.2)
+
+    # 鄉鎮區因子（如果提供）
+    township_factor = 1.0
+    if township:
+        # 不同鄉鎮區可能有不同的價格影響
+        township_factors = {
+            "中正區": 1.1, "大安區": 1.15, "信義區": 1.2,
+            "板橋區": 1.05, "中和區": 1.0, "三重區": 0.95,
+            "桃園區": 1.0, "中壢區": 0.98, "八德區": 0.95,
+            "西屯區": 1.05, "北屯區": 1.0, "南屯區": 1.02,
+            "中西區": 1.0, "東區": 0.98, "安平區": 1.03,
+            "左營區": 1.02, "三民區": 1.0, "前金區": 1.05
+        }
+        township_factor = township_factors.get(township, 1.0)
+
+    # 地段因子（如果提供）
+    land_factor = 1.0
+    if land_segment:
+        # 不同地段可能影響運輸成本等
+        if "中心" in land_segment or "中正" in land_segment:
+            land_factor = 1.05
+        elif "農業" in land_segment:
+            land_factor = 0.92
+        else:
+            land_factor = np.random.uniform(0.95, 1.05)
+
     for variety in CABBAGE_VARIETIES:
         base_price = np.random.uniform(15, 40)
-        regional_factor = np.random.uniform(0.8, 1.2)  # 地區因子
-        county_data[variety] = round(base_price * regional_factor, 2)
+        final_factor = base_regional_factor * township_factor * land_factor
+        county_data[variety] = round(base_price * final_factor, 2)
+
     return county_data
+
 
 def forecast_model(variety, county, days, iot_volume, typhoon_impact):
     base_prices = {
@@ -45,6 +181,7 @@ def forecast_model(variety, county, days, iot_volume, typhoon_impact):
     impact = 1 - typhoon_impact * 0.3
     forecast = base_price * (1 + noise) * impact + iot_volume * 0.01
     return forecast
+
 
 st.title("🥬 甘藍價格與產量預測模擬")
 
@@ -90,6 +227,28 @@ with col2:
     # 縣市選擇
     selected_county = st.selectbox("選擇縣市", COUNTIES, key="county_select")
     
+    # 取得該縣市的鄉鎮區資料
+    township_data = get_default_township_data(selected_county)
+    townships = list(township_data.keys())
+    
+    # 鄉鎮區選擇
+    selected_township = st.selectbox("選擇鄉鎮區", ["全部鄉鎮區"] + townships, key="township_select")
+    
+    # 地段選擇（如果選擇了特定鄉鎮區）
+    if selected_township != "全部鄉鎮區":
+        segments = list(township_data[selected_township].keys())
+        selected_segment = st.selectbox("選擇地段", ["全部地段"] + segments, key="segment_select")
+        
+        # 地號選擇（如果選擇了特定地段）
+        if selected_segment != "全部地段":
+            land_numbers = township_data[selected_township][selected_segment]
+            selected_land_number = st.selectbox("選擇地號", ["全部地號"] + land_numbers, key="land_number_select")
+        else:
+            selected_land_number = None
+    else:
+        selected_segment = None
+        selected_land_number = None
+    
     # 品種選擇
     selected_variety_county = st.selectbox(
         "選擇品種", 
@@ -97,18 +256,37 @@ with col2:
         key="county_variety"
     )
     
-    # 顯示縣市行情
-    county_data = get_county_market_data(selected_county)
+    # 顯示縣市行情（根據選擇的地籍資料調整）
+    county_data = get_county_market_data(
+        selected_county, 
+        selected_township if selected_township != "全部鄉鎮區" else None,
+        selected_segment if selected_segment and selected_segment != "全部地段" else None,
+        selected_land_number if selected_land_number and selected_land_number != "全部地號" else None
+    )
+    
+    # 建立標題字串
+    location_title = selected_county
+    if selected_township != "全部鄉鎮區":
+        location_title += f" - {selected_township}"
+        if selected_segment and selected_segment != "全部地段":
+            location_title += f" - {selected_segment}"
+            if selected_land_number and selected_land_number != "全部地號":
+                location_title += f" - {selected_land_number}"
     
     if selected_variety_county == "全部品種":
-        st.subheader(f"{selected_county} 各品種行情")
+        st.subheader(f"{location_title} 各品種行情")
         county_df = pd.DataFrame([
-            {"品種": variety, "價格 (NT$/kg)": price, "供應量": f"{np.random.randint(100, 1000)}噸"}
+            {
+                "品種": variety, 
+                "價格 (NT$/kg)": price, 
+                "供應量": f"{np.random.randint(100, 1000)}噸",
+                "地籍影響": "已含" if (selected_township != "全部鄉鎮區" or selected_segment or selected_land_number) else "未含"
+            }
             for variety, price in county_data.items()
         ])
         st.dataframe(county_df, use_container_width=True)
     else:
-        st.subheader(f"{selected_county} - {selected_variety_county}")
+        st.subheader(f"{location_title} - {selected_variety_county}")
         price = county_data[selected_variety_county]
         supply = np.random.randint(50, 500)
         col_a, col_b = st.columns(2)
@@ -116,6 +294,15 @@ with col2:
             st.metric("當日價格", f"{price} NT$/kg")
         with col_b:
             st.metric("供應量", f"{supply} 噸")
+        
+        # 顯示地籍資訊
+        if selected_township != "全部鄉鎮區":
+            st.info(f"📍 地籍資訊：{location_title}")
+            if selected_segment and selected_segment != "全部地段":
+                land_info = f"地段：{selected_segment}"
+                if selected_land_number and selected_land_number != "全部地號":
+                    land_info += f" | 地號：{selected_land_number}"
+                st.caption(land_info)
 
 # 原有的預測功能保持在下方
 st.divider()
