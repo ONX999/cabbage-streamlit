@@ -43,14 +43,15 @@ This is a Streamlit web application that provides cabbage price and yield foreca
 2. Navigate to http://localhost:8501
 3. Verify the page loads with title "甘藍價格與產量預測模擬" (Cabbage Price and Yield Forecasting Simulation)
 4. Test all interactive elements:
-   - Change cabbage variety dropdown (初秋甘藍, 進口甘藍, 芽甘藍)
-   - Change county dropdown (台東, 台中, 雲林, 高雄)
+   - Change cabbage variety dropdown (初秋甘藍, 進口甘藍, 芽甘藍, 高麗菜, 紫甘藍, 娃娃菜, 包心白菜, 結球白菜, 冬季甘藍, 春季甘藍)
+   - Change county dropdown (台北市, 新北市, 桃園市, 台中市, 台南市, 高雄市, and 16 other counties/cities)
    - Adjust forecast days slider (1-30 days)
    - Modify IoT volume input (kg)
    - Adjust typhoon impact slider (0.0-1.0)
 5. Verify the chart updates dynamically when parameters change
-6. Verify profit calculation updates (預估總利潤)
-7. Verify supply chain resilience values update (Farm, Transport, Market 韌性狀態)
+6. Verify profit calculation updates (預估總利潤) - example: 初秋甘藍 should show different profit than 進口甘藍
+7. Verify supply chain resilience values update (農場, 運輸, 市場 韌性狀態)
+8. Verify market analysis section updates (全台灣甘藍行情, 各縣市甘藍行情, 市場趨勢分析)
 
 ### Development Workflow
 - Always test functionality after making code changes to app.py
@@ -70,16 +71,19 @@ This is a Streamlit web application that provides cabbage price and yield foreca
   4. Installs and runs pytest
 
 ### Known Issues with CI
-- **environment.yml missing**: The workflow expects conda but project uses pip
+- **environment.yml vs requirements.txt mismatch**: The workflow expects conda but project primarily uses pip
+- **Network timeouts**: Conda environment setup works but can fail during pip install phase due to network timeouts
 - To make CI pass, either:
-  - Create environment.yml with conda equivalents of requirements.txt
+  - Create environment.yml with conda equivalents of requirements.txt (already exists but has additional packages)
   - OR modify workflow to use `pip install -r requirements.txt`
+- **Conda command validation**: `conda env update --file environment.yml --name base` installs Python 3.10 and conda packages successfully, but may timeout during pip phase
 
 ## Project Structure
 
 ### Key Files
-- `app.py` - Main Streamlit application (41 lines)
+- `app.py` - Main Streamlit application (194 lines)
 - `requirements.txt` - Python dependencies (streamlit, numpy, pandas)
+- `environment.yml` - Conda environment configuration (includes matplotlib, plotly)
 - `.devcontainer/devcontainer.json` - VS Code dev container configuration
 - `.github/workflows/python-package-conda.yml` - CI/CD pipeline
 - `render.yaml` - Deployment configuration (currently empty)
@@ -103,6 +107,7 @@ This is a Streamlit web application that provides cabbage price and yield foreca
 - Check browser console for JavaScript errors
 - Streamlit server logs appear in terminal
 - Common issue: Chart warnings about "Infinite extent" are normal and non-blocking
+- Expected warnings: "WARN Infinite extent for field" and "The input spec uses Vega-Lite v5.20.1, but the current version of Vega-Lite is v6.2.0"
 
 ### Performance Notes
 - Application is lightweight - no heavy computations
@@ -117,10 +122,10 @@ This is a Streamlit web application that provides cabbage price and yield foreca
 - Dev container support available for consistent environment
 
 **CRITICAL TIMING NOTES:**
-- Dependency installation: ~20 seconds (may take longer with network issues) - NEVER CANCEL, set timeout to 120+ seconds
+- Dependency installation: ~15 seconds (may take longer with network issues) - NEVER CANCEL, set timeout to 120+ seconds
 - Application startup: ~3-5 seconds
-- Linting: <1 second each command
-- Testing: <1 second (currently no tests)
+- Linting: <1 second each command (0.13s for critical checks, 0.14s for full style checks)  
+- Testing: <1 second (currently no tests, 0.18s with 0 tests found, exits with code 5)
 - All operations are fast - no long-running builds or tests in this project
 
 **NETWORK ISSUES:**
